@@ -4,8 +4,10 @@ import { ProductForm, Product } from "@/components/ProductForm";
 import { ProductList } from "@/components/ProductList";
 import { TotalCalculator } from "@/components/TotalCalculator";
 import { CostCalculator } from "@/components/CostCalculator";
+import { BudgetGenerator } from "@/components/BudgetGenerator";
+import { BudgetHistory } from "@/components/BudgetHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Calculator, DollarSign, Grid3X3 } from "lucide-react";
+import { Package, Calculator, DollarSign, Grid3X3, FileText, History } from "lucide-react";
 
 const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -40,7 +42,7 @@ const Index = () => {
 
         {/* Main Tabs */}
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-6 h-auto p-1">
             <TabsTrigger value="products" className="flex items-center gap-2 p-3">
               <Package className="h-4 w-4" />
               <span className="hidden sm:inline">Productos</span>
@@ -56,6 +58,14 @@ const Index = () => {
             <TabsTrigger value="costs" className="flex items-center gap-2 p-3">
               <DollarSign className="h-4 w-4" />
               <span className="hidden sm:inline">Costos</span>
+            </TabsTrigger>
+            <TabsTrigger value="budget" className="flex items-center gap-2 p-3">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Presupuesto</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center gap-2 p-3">
+              <History className="h-4 w-4" />
+              <span className="hidden sm:inline">Historial</span>
             </TabsTrigger>
           </TabsList>
 
@@ -105,6 +115,14 @@ const Index = () => {
 
           <TabsContent value="costs" className="space-y-6">
             <CostCalculator products={products} />
+          </TabsContent>
+
+          <TabsContent value="budget" className="space-y-6">
+            <BudgetGenerator products={products} />
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-6">
+            <BudgetHistory />
           </TabsContent>
         </Tabs>
 
