@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { DollarSign, Percent, Save } from "lucide-react";
 import { Product } from "./ProductForm";
 import { useToast } from "@/hooks/use-toast";
@@ -14,18 +15,21 @@ interface CostCalculatorProps {
 export const CostCalculator = ({ products }: CostCalculatorProps) => {
   const [costPercentage, setCostPercentage] = useState<string>("70");
   const [additionalCosts, setAdditionalCosts] = useState<string>("0");
+  const [includeIVA, setIncludeIVA] = useState(true);
   const [savedCosts, setSavedCosts] = useState<any>(null);
   
   const { toast } = useToast();
 
   const subtotal = products.reduce((sum, product) => sum + product.total, 0);
+  const iva = includeIVA ? subtotal * 0.16 : 0;
+  const totalWithIVA = subtotal + iva;
   const costPercent = parseFloat(costPercentage) / 100;
   const additional = parseFloat(additionalCosts) || 0;
   
   const materialCost = subtotal * costPercent;
   const totalCost = materialCost + additional;
-  const profit = subtotal - totalCost;
-  const profitMargin = subtotal > 0 ? ((profit / subtotal) * 100) : 0;
+  const profit = totalWithIVA - totalCost;
+  const profitMargin = totalWithIVA > 0 ? ((profit / totalWithIVA) * 100) : 0;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -38,6 +42,9 @@ export const CostCalculator = ({ products }: CostCalculatorProps) => {
     const costData = {
       date: new Date().toLocaleDateString('es-MX'),
       subtotal,
+      iva,
+      totalWithIVA,
+      includeIVA,
       materialCost,
       additionalCosts: additional,
       totalCost,
@@ -68,6 +75,23 @@ export const CostCalculator = ({ products }: CostCalculatorProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Input Section */}
             <div className="space-y-4">
+              {/* IVA Toggle */}
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div className="space-y-1">
+                  <Label htmlFor="iva-switch-cost" className="text-sm font-medium">
+                    Incluir IVA en cálculo (16%)
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Activar/desactivar el IVA en el precio final
+                  </p>
+                </div>
+                <Switch
+                  id="iva-switch-cost"
+                  checked={includeIVA}
+                  onCheckedChange={setIncludeIVA}
+                />
+              </div>
+
               <div>
                 <Label htmlFor="costPercentage">Porcentaje de Costo del Material (%)</Label>
                 <div className="relative mt-1">
@@ -121,6 +145,18 @@ export const CostCalculator = ({ products }: CostCalculatorProps) => {
                     <span className="font-medium">{formatCurrency(subtotal)}</span>
                   </div>
                   
+                  {includeIVA && (
+                    <div className="flex justify-between">
+                      <span>IVA (16%):</span>
+                      <span className="font-medium text-warning">{formatCurrency(iva)}</span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between font-semibold border-t pt-2">
+                    <span>Total {includeIVA ? '(con IVA)' : '(sin IVA)'}:</span>
+                    <span className="text-primary">{formatCurrency(totalWithIVA)}</span>
+                  </div>
+                  
                   <div className="flex justify-between">
                     <span>Costo del Material ({costPercentage}%):</span>
                     <span className="font-medium text-warning">{formatCurrency(materialCost)}</span>
@@ -171,7 +207,8 @@ export const CostCalculator = ({ products }: CostCalculatorProps) => {
                 <span className="font-medium">Productos:</span> {savedCosts.products}
               </div>
               <div>
-                <span className="font-medium">Precio de Venta:</span> {formatCurrency(savedCosts.subtotal)}
+                <span className="font-medium">Precio {savedCosts.includeIVA ? '(con IVA)' : '(sin IVA)'}:</span> 
+                {savedCosts.includeIVA ? formatCurrency(savedCosts.totalWithIVA) : formatCurrency(savedCosts.subtotal)}
               </div>
               <div>
                 <span className="font-medium">Costo Total:</span> {formatCurrency(savedCosts.totalCost)}

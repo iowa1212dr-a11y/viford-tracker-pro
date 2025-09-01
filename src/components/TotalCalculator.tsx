@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Calculator, TrendingUp } from "lucide-react";
 import { Product } from "./ProductForm";
 
@@ -7,8 +10,10 @@ interface TotalCalculatorProps {
 }
 
 export const TotalCalculator = ({ products }: TotalCalculatorProps) => {
+  const [includeIVA, setIncludeIVA] = useState(true);
+  
   const subtotal = products.reduce((sum, product) => sum + product.total, 0);
-  const iva = subtotal * 0.16; // 16% IVA
+  const iva = includeIVA ? subtotal * 0.16 : 0; // 16% IVA opcional
   const total = subtotal + iva;
   
   const totalProducts = products.length;
@@ -43,6 +48,23 @@ export const TotalCalculator = ({ products }: TotalCalculatorProps) => {
             </div>
           </div>
 
+          {/* IVA Toggle */}
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg mb-4">
+            <div className="space-y-1">
+              <Label htmlFor="iva-switch" className="text-sm font-medium">
+                Incluir IVA (16%)
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Activar/desactivar el cálculo del IVA
+              </p>
+            </div>
+            <Switch
+              id="iva-switch"
+              checked={includeIVA}
+              onCheckedChange={setIncludeIVA}
+            />
+          </div>
+
           {/* Calculations */}
           <div className="space-y-3">
             <div className="flex justify-between items-center py-2 border-b border-border">
@@ -50,13 +72,17 @@ export const TotalCalculator = ({ products }: TotalCalculatorProps) => {
               <span className="text-lg font-semibold">{formatCurrency(subtotal)}</span>
             </div>
             
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="font-medium">IVA (16%):</span>
-              <span className="text-lg font-semibold text-warning">{formatCurrency(iva)}</span>
-            </div>
+            {includeIVA && (
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="font-medium">IVA (16%):</span>
+                <span className="text-lg font-semibold text-warning">{formatCurrency(iva)}</span>
+              </div>
+            )}
             
             <div className="flex justify-between items-center py-3 border-2 border-primary rounded-lg px-4 bg-primary/5">
-              <span className="text-xl font-bold text-primary">TOTAL:</span>
+              <span className="text-xl font-bold text-primary">
+                TOTAL {includeIVA ? '(con IVA)' : '(sin IVA)'}:
+              </span>
               <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
             </div>
           </div>
