@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calculator, TrendingUp } from "lucide-react";
 import { Product } from "./ProductForm";
+import { useCurrency } from "./CurrencyProvider";
 
 interface TotalCalculatorProps {
   products: Product[];
@@ -11,20 +12,14 @@ interface TotalCalculatorProps {
 
 export const TotalCalculator = ({ products }: TotalCalculatorProps) => {
   const [includeIVA, setIncludeIVA] = useState(true);
+  const { formatAmount, convertAmount, currency } = useCurrency();
   
-  const subtotal = products.reduce((sum, product) => sum + product.total, 0);
-  const iva = includeIVA ? subtotal * 0.16 : 0; // 16% IVA opcional
+  const subtotal = products.reduce((sum, product) => sum + convertAmount(product.total), 0);
+  const iva = includeIVA ? subtotal * 0.16 : 0;
   const total = subtotal + iva;
   
   const totalProducts = products.length;
   const totalQuantity = products.reduce((sum, product) => sum + product.quantity, 0);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN'
-    }).format(amount);
-  };
 
   return (
     <Card className="w-full">
@@ -49,41 +44,34 @@ export const TotalCalculator = ({ products }: TotalCalculatorProps) => {
           </div>
 
           {/* IVA Toggle */}
-          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg mb-4">
-            <div className="space-y-1">
-              <Label htmlFor="iva-switch" className="text-sm font-medium">
-                Incluir IVA (16%)
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Activar/desactivar el cálculo del IVA
-              </p>
-            </div>
-            <Switch
-              id="iva-switch"
-              checked={includeIVA}
-              onCheckedChange={setIncludeIVA}
-            />
+          <div className="flex items-center justify-between">
+            <Label htmlFor="iva-switch" className="text-sm">Incluir IVA (16%)</Label>
+            <Button
+              variant={includeIVA ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIncludeIVA(!includeIVA)}
+            >
+              {includeIVA ? "Con IVA" : "Sin IVA"}
+            </Button>
           </div>
 
           {/* Calculations */}
           <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="font-medium">Subtotal:</span>
-              <span className="text-lg font-semibold">{formatCurrency(subtotal)}</span>
+            <div className="flex justify-between text-sm">
+              <span>Subtotal:</span>
+              <span className="font-medium">{formatAmount(subtotal)}</span>
             </div>
             
             {includeIVA && (
-              <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="font-medium">IVA (16%):</span>
-                <span className="text-lg font-semibold text-warning">{formatCurrency(iva)}</span>
+              <div className="flex justify-between text-sm">
+                <span>IVA (16%):</span>
+                <span className="font-medium text-warning">{formatAmount(iva)}</span>
               </div>
             )}
             
-            <div className="flex justify-between items-center py-3 border-2 border-primary rounded-lg px-4 bg-primary/5">
-              <span className="text-xl font-bold text-primary">
-                TOTAL {includeIVA ? '(con IVA)' : '(sin IVA)'}:
-              </span>
-              <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
+            <div className="flex justify-between font-bold text-lg border-t pt-2">
+              <span>Total ({currency}):</span>
+              <span className="text-success">{formatAmount(total)}</span>
             </div>
           </div>
 
@@ -99,7 +87,7 @@ export const TotalCalculator = ({ products }: TotalCalculatorProps) => {
                     <span className="text-muted-foreground">
                       {product.name} ({product.quantity}x)
                     </span>
-                    <span className="font-medium">{formatCurrency(product.total)}</span>
+                    <span className="font-medium">{formatAmount(convertAmount(product.total))}</span>
                   </div>
                 ))}
               </div>

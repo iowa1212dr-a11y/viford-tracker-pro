@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "./CurrencyProvider";
 
 export interface Product {
   id: string;
@@ -31,8 +32,9 @@ export const ProductForm = ({ onAddProduct }: ProductFormProps) => {
     unit: "metro" as 'metro' | 'pieza',
     quantity: "1"
   });
-  
+
   const { toast } = useToast();
+  const { formatAmount, currency } = useCurrency();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

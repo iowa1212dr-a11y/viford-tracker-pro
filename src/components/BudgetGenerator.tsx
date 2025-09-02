@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Save, Share2, User, Building, Calendar } from "lucide-react";
+import { FileText, Save, Share2, User, Building, Calendar, Hash } from "lucide-react";
 import { Product } from "./ProductForm";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrency } from "./CurrencyProvider";
 
 interface BudgetGeneratorProps {
   products: Product[];
@@ -15,6 +16,7 @@ interface BudgetGeneratorProps {
 
 export interface Budget {
   id: string;
+  budgetNumber: string;
   clientName: string;  
   clientRIF: string;
   companyName: string;
@@ -26,6 +28,7 @@ export interface Budget {
   subtotal: number;
   iva: number;
   total: number;
+  currency: 'USD' | 'VES';
 }
 
 export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
@@ -35,19 +38,28 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
   const [companyRIF, setCompanyRIF] = useState("");
   const [notes, setNotes] = useState("");
   const [includeIVA, setIncludeIVA] = useState(true);
+  const [budgetNumber, setBudgetNumber] = useState("");
   
+  const { formatAmount, convertAmount, currency } = useCurrency();
   const { toast } = useToast();
 
-  const subtotal = products.reduce((sum, product) => sum + product.total, 0);
+  const subtotal = products.reduce((sum, product) => sum + convertAmount(product.total), 0);
   const iva = includeIVA ? subtotal * 0.16 : 0;
   const total = subtotal + iva;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN'
-    }).format(amount);
-  };
+  useEffect(() => {
+    const getNextBudgetNumber = () => {
+      const existingBudgets = JSON.parse(localStorage.getItem('viford-budgets') || '[]');
+      const lastNumber = existingBudgets.length > 0 
+        ? Math.max(...existingBudgets.map((b: Budget) => parseInt(b.budgetNumber) || 0))
+        : 0;
+      return String(lastNumber + 1).padStart(4, '0');
+    };
+    
+    if (!budgetNumber) {
+      setBudgetNumber(getNextBudgetNumber());
+    }
+  }, [budgetNumber]);
 
   const saveBudget = () => {
     if (!clientName.trim()) {
@@ -70,17 +82,23 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
 
     const budget: Budget = {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      budgetNumber: budgetNumber,
       clientName,
       clientRIF,
       companyName,
       companyRIF,
       notes,
       date: new Date().toLocaleDateString('es-MX'),
-      products: [...products],
+      products: [...products].map(p => ({
+        ...p,
+        price: convertAmount(p.price),
+        total: convertAmount(p.total)
+      })),
       includeIVA,
       subtotal,
       iva,
-      total
+      total,
+      currency
     };
 
     // Guardar en localStorage
@@ -94,10 +112,13 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
       variant: "default"
     });
 
-    // Limpiar formulario
+    // Limpiar formulario y generar siguiente número
     setClientName("");
     setClientRIF("");
     setNotes("");
+    
+    const nextNumber = String(parseInt(budgetNumber) + 1).padStart(4, '0');
+    setBudgetNumber(nextNumber);
   };
 
   const shareBudget = async () => {
@@ -110,9 +131,9 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
       return;
     }
 
-    const shareText = `${companyName || 'EMPRESA VIFORD PRO'}\n` +
+    const shareText = `${companyName || 'EMPRESA VIFORD PRO C.A.'}\n` +
       `${companyRIF ? `RIF: ${companyRIF}\n` : ''}` +
-      `PRESUPUESTO N°: ${Date.now().toString().slice(-4)}\n\n` +
+      `PRESUPUESTO N°: ${budgetNumber}\n\n` +
       `Cliente: ${clientName}\n` +
       `${clientRIF ? `RIF: ${clientRIF}\n` : ''}` +
       `Fecha: ${new Date().toLocaleDateString('es-MX')}\n\n` +
@@ -120,13 +141,13 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
       `${products.map((p, index) => 
         `${index + 1}. ${p.name.toUpperCase()}\n` +
         `   Medida: ${p.width} x ${p.height}m\n` +
-        `   Precio: ${formatCurrency(p.price)} ${p.unit === 'pieza' ? 'por pieza' : 'por m²'}\n` +
+        `   Precio: ${formatAmount(convertAmount(p.price))} ${p.unit === 'pieza' ? 'por pieza' : 'por m²'}\n` +
         `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.height).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'm²'}\n` +
-        `   Subtotal: ${formatCurrency(p.total)}\n`
+        `   Subtotal: ${formatAmount(convertAmount(p.total))}\n`
       ).join('\n')}\n` +
-      `SUBTOTAL: ${formatCurrency(subtotal)}\n` +
-      `${includeIVA ? `IVA (16%): ${formatCurrency(iva)}\n` : ''}` +
-      `TOTAL GENERAL: ${formatCurrency(total)}\n` +
+      `SUBTOTAL: ${formatAmount(subtotal)}\n` +
+      `${includeIVA ? `IVA (16%): ${formatAmount(iva)}\n` : ''}` +
+      `TOTAL GENERAL: ${formatAmount(total)}\n` +
       `${notes ? `\nNOTAS: ${notes}` : ''}`;
 
     if (navigator.share) {
@@ -229,6 +250,23 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
               </div>
 
               <div>
+                <Label htmlFor="budgetNumber" className="flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  Número del Presupuesto
+                </Label>
+                <Input
+                  id="budgetNumber"
+                  value={budgetNumber}
+                  onChange={(e) => setBudgetNumber(e.target.value)}
+                  placeholder="0001"
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Se incrementa automáticamente al guardar
+                </p>
+              </div>
+
+              <div>
                 <Label htmlFor="notes">Notas Adicionales</Label>
                 <Textarea
                   id="notes"
@@ -281,7 +319,7 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
                   )}
                   <div className="flex justify-between items-center mt-2 text-sm">
                     <span className="font-medium">PRESUPUESTO</span>
-                    <span className="font-medium">N°: {Date.now().toString().slice(-4)}</span>
+                    <span className="font-medium">N°: {budgetNumber}</span>
                   </div>
                 </div>
                 
@@ -312,11 +350,11 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
                             <div className="flex-1">
                               <p className="font-medium">{index + 1}. {product.name.toUpperCase()}</p>
                               <p>Medida: {product.width} x {product.height}m</p>
-                              <p>Precio: {formatCurrency(product.price)} {product.unit === 'pieza' ? 'por pieza' : 'por m²'}</p>
+                              <p>Precio: {formatAmount(convertAmount(product.price))} {product.unit === 'pieza' ? 'por pieza' : 'por m²'}</p>
                             </div>
                             <div className="text-right">
                               <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.height).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'm²'}</p>
-                              <p className="font-bold">{formatCurrency(product.total)}</p>
+                              <p className="font-bold">{formatAmount(convertAmount(product.total))}</p>
                             </div>
                           </div>
                         </div>
@@ -330,19 +368,19 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
                 <div className="border-t pt-3">
                   <div className="flex justify-between text-sm mb-1">
                     <span>Subtotal:</span>
-                    <span className="font-medium">{formatCurrency(subtotal)}</span>
+                    <span className="font-medium">{formatAmount(subtotal)}</span>
                   </div>
                   
                   {includeIVA && (
                     <div className="flex justify-between text-sm mb-1">
                       <span>IVA (16%):</span>
-                      <span className="font-medium text-warning">{formatCurrency(iva)}</span>
+                      <span className="font-medium text-warning">{formatAmount(iva)}</span>
                     </div>
                   )}
                   
                   <div className="flex justify-between font-bold text-lg border-t pt-2">
                     <span>TOTAL GENERAL:</span>
-                    <span className="text-primary">{formatCurrency(total)}</span>
+                    <span className="text-primary">{formatAmount(total)}</span>
                   </div>
                 </div>
 
