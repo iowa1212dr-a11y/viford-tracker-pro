@@ -17,6 +17,8 @@ export interface Budget {
   id: string;
   clientName: string;  
   clientRIF: string;
+  companyName: string;
+  companyRIF: string;
   notes: string;
   date: string;
   products: Product[];
@@ -29,6 +31,8 @@ export interface Budget {
 export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
   const [clientName, setClientName] = useState("");
   const [clientRIF, setClientRIF] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [companyRIF, setCompanyRIF] = useState("");
   const [notes, setNotes] = useState("");
   const [includeIVA, setIncludeIVA] = useState(true);
   
@@ -68,6 +72,8 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       clientName,
       clientRIF,
+      companyName,
+      companyRIF,
       notes,
       date: new Date().toLocaleDateString('es-MX'),
       products: [...products],
@@ -104,18 +110,24 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
       return;
     }
 
-    const shareText = `PRESUPUESTO MALLA VIFORD PRO\n\n` +
+    const shareText = `${companyName || 'EMPRESA VIFORD PRO'}\n` +
+      `${companyRIF ? `RIF: ${companyRIF}\n` : ''}` +
+      `PRESUPUESTO N°: ${Date.now().toString().slice(-4)}\n\n` +
       `Cliente: ${clientName}\n` +
       `${clientRIF ? `RIF: ${clientRIF}\n` : ''}` +
       `Fecha: ${new Date().toLocaleDateString('es-MX')}\n\n` +
-      `PRODUCTOS:\n` +
-      products.map(p => 
-        `• ${p.name} - ${p.width}x${p.height}m - ${p.unit === 'pieza' ? 'Por pieza' : 'Por m²'} - ${formatCurrency(p.total)}`
-      ).join('\n') +
-      `\n\nSUBTOTAL: ${formatCurrency(subtotal)}\n` +
+      `MATERIALES:\n` +
+      `${products.map((p, index) => 
+        `${index + 1}. ${p.name.toUpperCase()}\n` +
+        `   Medida: ${p.width} x ${p.height}m\n` +
+        `   Precio: ${formatCurrency(p.price)} ${p.unit === 'pieza' ? 'por pieza' : 'por m²'}\n` +
+        `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.height).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'm²'}\n` +
+        `   Subtotal: ${formatCurrency(p.total)}\n`
+      ).join('\n')}\n` +
+      `SUBTOTAL: ${formatCurrency(subtotal)}\n` +
       `${includeIVA ? `IVA (16%): ${formatCurrency(iva)}\n` : ''}` +
-      `TOTAL: ${formatCurrency(total)}\n` +
-      `${notes ? `\nNotas: ${notes}` : ''}`;
+      `TOTAL GENERAL: ${formatCurrency(total)}\n` +
+      `${notes ? `\nNOTAS: ${notes}` : ''}`;
 
     if (navigator.share) {
       try {
@@ -148,34 +160,72 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Información del Cliente */}
+            {/* Información de la Empresa y Cliente */}
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="clientName" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Nombre del Cliente *
-                </Label>
-                <Input
-                  id="clientName"
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
-                  placeholder="Nombre completo o empresa"
-                  className="mt-1"
-                />
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <h4 className="font-semibold text-primary mb-3">Datos de la Empresa</h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="companyName" className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Nombre de la Empresa
+                    </Label>
+                    <Input
+                      id="companyName"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="EMPRESA VIFORD PRO C.A."
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="companyRIF" className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      RIF de la Empresa
+                    </Label>
+                    <Input
+                      id="companyRIF"
+                      value={companyRIF}
+                      onChange={(e) => setCompanyRIF(e.target.value)}
+                      placeholder="J-12345678-9"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="clientRIF" className="flex items-center gap-2">
-                  <Building className="h-4 w-4" />
-                  RIF/CÉDULA (Opcional)
-                </Label>
-                <Input
-                  id="clientRIF"
-                  value={clientRIF}
-                  onChange={(e) => setClientRIF(e.target.value)}
-                  placeholder="J-12345678-9 o V-12345678"
-                  className="mt-1"
-                />
+              <div className="p-4 bg-secondary/5 border border-secondary/20 rounded-lg">
+                <h4 className="font-semibold text-secondary mb-3">Datos del Cliente</h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="clientName" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Nombre del Cliente *
+                    </Label>
+                    <Input
+                      id="clientName"
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      placeholder="Nombre completo o empresa"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="clientRIF" className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      RIF/CÉDULA (Opcional)
+                    </Label>
+                    <Input
+                      id="clientRIF"
+                      value={clientRIF}
+                      onChange={(e) => setClientRIF(e.target.value)}
+                      placeholder="J-12345678-9 o V-12345678"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -221,54 +271,87 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
 
             {/* Vista Previa del Presupuesto */}
             <div className="space-y-4">
-              <div className="p-4 bg-muted rounded-lg">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="h-4 w-4" />
-                  <h3 className="font-semibold">Vista Previa del Presupuesto</h3>
+              <div className="p-4 bg-muted rounded-lg border-2 border-dashed">
+                <div className="text-center border-b pb-3 mb-4">
+                  <h2 className="font-bold text-lg text-primary">
+                    {companyName || "EMPRESA VIFORD PRO C.A."}
+                  </h2>
+                  {companyRIF && (
+                    <p className="text-sm text-muted-foreground">RIF: {companyRIF}</p>
+                  )}
+                  <div className="flex justify-between items-center mt-2 text-sm">
+                    <span className="font-medium">PRESUPUESTO</span>
+                    <span className="font-medium">N°: {Date.now().toString().slice(-4)}</span>
+                  </div>
                 </div>
                 
-                <div className="space-y-2 text-sm">
+                <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                   <div>
-                    <span className="font-medium">Cliente:</span> {clientName || "Sin especificar"}
+                    <span className="font-medium">Cliente:</span>
+                    <p>{clientName || "Sin especificar"}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Fecha:</span>
+                    <p>{new Date().toLocaleDateString('es-MX')}</p>
                   </div>
                   {clientRIF && (
-                    <div>
-                      <span className="font-medium">RIF:</span> {clientRIF}
-                    </div>
-                  )}
-                  <div>
-                    <span className="font-medium">Fecha:</span> {new Date().toLocaleDateString('es-MX')}
-                  </div>
-                  <div>
-                    <span className="font-medium">Productos:</span> {products.length}
-                  </div>
-                  
-                  <div className="border-t pt-2 mt-2">
-                    <div className="flex justify-between">
-                      <span>Subtotal:</span>
-                      <span className="font-medium">{formatCurrency(subtotal)}</span>
-                    </div>
-                    
-                    {includeIVA && (
-                      <div className="flex justify-between">
-                        <span>IVA (16%):</span>
-                        <span className="font-medium text-warning">{formatCurrency(iva)}</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-between font-bold text-lg border-t pt-2">
-                      <span>Total:</span>
-                      <span className="text-primary">{formatCurrency(total)}</span>
-                    </div>
-                  </div>
-
-                  {notes && (
-                    <div className="border-t pt-2 mt-2">
-                      <span className="font-medium">Notas:</span>
-                      <p className="text-xs text-muted-foreground mt-1">{notes}</p>
+                    <div className="col-span-2">
+                      <span className="font-medium">RIF Cliente:</span>
+                      <p>{clientRIF}</p>
                     </div>
                   )}
                 </div>
+
+                <div className="border rounded p-3 mb-4 bg-background">
+                  <h4 className="font-semibold mb-2">MATERIALES</h4>
+                  {products.length > 0 ? (
+                    <div className="space-y-2">
+                      {products.map((product, index) => (
+                        <div key={index} className="text-xs border-b pb-2">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium">{index + 1}. {product.name.toUpperCase()}</p>
+                              <p>Medida: {product.width} x {product.height}m</p>
+                              <p>Precio: {formatCurrency(product.price)} {product.unit === 'pieza' ? 'por pieza' : 'por m²'}</p>
+                            </div>
+                            <div className="text-right">
+                              <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.height).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'm²'}</p>
+                              <p className="font-bold">{formatCurrency(product.total)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-xs">No hay productos agregados</p>
+                  )}
+                </div>
+                
+                <div className="border-t pt-3">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Subtotal:</span>
+                    <span className="font-medium">{formatCurrency(subtotal)}</span>
+                  </div>
+                  
+                  {includeIVA && (
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>IVA (16%):</span>
+                      <span className="font-medium text-warning">{formatCurrency(iva)}</span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between font-bold text-lg border-t pt-2">
+                    <span>TOTAL GENERAL:</span>
+                    <span className="text-primary">{formatCurrency(total)}</span>
+                  </div>
+                </div>
+
+                {notes && (
+                  <div className="border-t pt-3 mt-3">
+                    <span className="font-medium text-sm">Notas:</span>
+                    <p className="text-xs text-muted-foreground mt-1">{notes}</p>
+                  </div>
+                )}
               </div>
 
               {products.length === 0 && (

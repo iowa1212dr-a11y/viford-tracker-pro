@@ -33,6 +33,8 @@ export const BudgetHistory = () => {
   const filteredBudgets = budgets.filter(budget =>
     budget.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     budget.clientRIF.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (budget.companyName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (budget.companyRIF || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     budget.date.includes(searchTerm)
   );
 
@@ -53,18 +55,24 @@ export const BudgetHistory = () => {
   };
 
   const shareBudget = async (budget: Budget) => {
-    const shareText = `PRESUPUESTO MALLA VIFORD PRO\n\n` +
+    const shareText = `${budget.companyName || 'EMPRESA VIFORD PRO C.A.'}\n` +
+      `${budget.companyRIF ? `RIF: ${budget.companyRIF}\n` : ''}` +
+      `PRESUPUESTO N°: ${budget.id.slice(-4)}\n\n` +
       `Cliente: ${budget.clientName}\n` +
-      `${budget.clientRIF ? `RIF: ${budget.clientRIF}\n` : ''}` +
+      `${budget.clientRIF ? `RIF Cliente: ${budget.clientRIF}\n` : ''}` +
       `Fecha: ${budget.date}\n\n` +
-      `PRODUCTOS:\n` +
-      budget.products.map(p => 
-        `• ${p.name} - ${p.width}x${p.height}m - ${p.unit === 'pieza' ? 'Por pieza' : 'Por m²'} - ${formatCurrency(p.total)}`
-      ).join('\n') +
-      `\n\nSUBTOTAL: ${formatCurrency(budget.subtotal)}\n` +
+      `MATERIALES:\n` +
+      `${budget.products.map((p, index) => 
+        `${index + 1}. ${p.name.toUpperCase()}\n` +
+        `   Medida: ${p.width} x ${p.height}m\n` +
+        `   Precio: ${formatCurrency(p.price)} ${p.unit === 'pieza' ? 'por pieza' : 'por m²'}\n` +
+        `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.height).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'm²'}\n` +
+        `   Subtotal: ${formatCurrency(p.total)}\n`
+      ).join('\n')}\n` +
+      `SUBTOTAL: ${formatCurrency(budget.subtotal)}\n` +
       `${budget.includeIVA ? `IVA (16%): ${formatCurrency(budget.iva)}\n` : ''}` +
-      `TOTAL: ${formatCurrency(budget.total)}\n` +
-      `${budget.notes ? `\nNotas: ${budget.notes}` : ''}`;
+      `TOTAL GENERAL: ${formatCurrency(budget.total)}\n` +
+      `${budget.notes ? `\nNOTAS: ${budget.notes}` : ''}`;
 
     if (navigator.share) {
       try {
@@ -221,18 +229,33 @@ export const BudgetHistory = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {/* Información del Cliente */}
-                      <div className="p-4 bg-muted/50 rounded-lg">
-                        <h4 className="font-semibold mb-2">Información del Cliente</h4>
-                        <div className="space-y-1 text-sm">
-                          <div><span className="font-medium">Nombre:</span> {selectedBudget.clientName}</div>
-                          {selectedBudget.clientRIF && (
-                            <div><span className="font-medium">RIF:</span> {selectedBudget.clientRIF}</div>
-                          )}
-                          <div><span className="font-medium">Fecha:</span> {selectedBudget.date}</div>
-                        </div>
-                      </div>
+                     <div className="space-y-4">
+                       {/* Información de la Empresa */}
+                       {(selectedBudget.companyName || selectedBudget.companyRIF) && (
+                         <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                           <h4 className="font-semibold mb-2 text-primary">Información de la Empresa</h4>
+                           <div className="space-y-1 text-sm">
+                             {selectedBudget.companyName && (
+                               <div><span className="font-medium">Empresa:</span> {selectedBudget.companyName}</div>
+                             )}
+                             {selectedBudget.companyRIF && (
+                               <div><span className="font-medium">RIF:</span> {selectedBudget.companyRIF}</div>
+                             )}
+                           </div>
+                         </div>
+                       )}
+
+                       {/* Información del Cliente */}
+                       <div className="p-4 bg-secondary/5 border border-secondary/20 rounded-lg">
+                         <h4 className="font-semibold mb-2 text-secondary">Información del Cliente</h4>
+                         <div className="space-y-1 text-sm">
+                           <div><span className="font-medium">Cliente:</span> {selectedBudget.clientName}</div>
+                           {selectedBudget.clientRIF && (
+                             <div><span className="font-medium">RIF:</span> {selectedBudget.clientRIF}</div>
+                           )}
+                           <div><span className="font-medium">Fecha:</span> {selectedBudget.date}</div>
+                         </div>
+                       </div>
 
                       {/* Productos */}
                       <div>
