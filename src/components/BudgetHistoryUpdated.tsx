@@ -3,11 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { History, Search, Trash2, Share2, Eye, Calendar, User, Building } from "lucide-react";
+import { History, Search, Trash2, Share2, Eye, Calendar, User, Building, Edit } from "lucide-react";
 import { Budget } from "./BudgetGenerator";
 import { useToast } from "@/hooks/use-toast";
 
-export const BudgetHistory = () => {
+interface BudgetHistoryProps {
+  onEditBudget?: (budget: Budget) => void;
+}
+
+export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
@@ -200,6 +204,18 @@ export const BudgetHistory = () => {
                               }}
                             >
                               <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onEditBudget) {
+                                  onEditBudget(budget);
+                                }
+                              }}
+                            >
+                              <Edit className="h-3 w-3" />
                             </Button>
                             <Button
                               size="sm"

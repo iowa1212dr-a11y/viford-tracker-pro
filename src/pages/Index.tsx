@@ -11,6 +11,8 @@ import { CurrencyProvider } from "@/components/CurrencyProvider";
 
 const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [editingBudget, setEditingBudget] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("productos");
 
   const addProduct = (product: Product) => {
     setProducts(prev => [...prev, product]);
@@ -18,6 +20,16 @@ const Index = () => {
 
   const removeProduct = (id: string) => {
     setProducts(prev => prev.filter(p => p.id !== id));
+  };
+
+  const handleEditBudget = (budget: any) => {
+    setEditingBudget(budget);
+    setActiveTab("presupuesto");
+  };
+
+  const handleBudgetSaved = () => {
+    setEditingBudget(null);
+    setActiveTab("historial");
   };
 
   return (
@@ -33,7 +45,7 @@ const Index = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="productos" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="productos">Productos</TabsTrigger>
               <TabsTrigger value="totales">Totales</TabsTrigger>
@@ -61,11 +73,15 @@ const Index = () => {
             </TabsContent>
 
             <TabsContent value="presupuesto" className="space-y-6">
-              <BudgetGenerator products={products} />
+              <BudgetGenerator 
+                products={products} 
+                editingBudget={editingBudget}
+                onBudgetSaved={handleBudgetSaved}
+              />
             </TabsContent>
 
             <TabsContent value="historial" className="space-y-6">
-              <BudgetHistory />
+              <BudgetHistory onEditBudget={handleEditBudget} />
             </TabsContent>
           </Tabs>
         </div>

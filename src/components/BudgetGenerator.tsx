@@ -12,6 +12,8 @@ import { useCurrency } from "./CurrencyProvider";
 
 interface BudgetGeneratorProps {
   products: Product[];
+  editingBudget?: Budget | null;
+  onBudgetSaved?: () => void;
 }
 
 export interface Budget {
@@ -32,7 +34,7 @@ export interface Budget {
   currency: 'USD' | 'Bs.';
 }
 
-export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
+export const BudgetGenerator = ({ products, editingBudget, onBudgetSaved }: BudgetGeneratorProps) => {
   const [clientName, setClientName] = useState("");
   const [clientAddress, setClientAddress] = useState("");
   const [clientRIF, setClientRIF] = useState("");
@@ -41,6 +43,7 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
   const [notes, setNotes] = useState("");
   const [includeIVA, setIncludeIVA] = useState(true);
   const [budgetNumber, setBudgetNumber] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   
   const { formatAmount, convertAmount, currency } = useCurrency();
   const { toast } = useToast();
@@ -48,6 +51,31 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
   const subtotal = products.reduce((sum, product) => sum + convertAmount(product.total), 0);
   const iva = includeIVA ? subtotal * 0.16 : 0;
   const total = subtotal + iva;
+
+  // Cargar datos de empresa guardados
+  useEffect(() => {
+    const savedCompanyData = localStorage.getItem('viford-company-data');
+    if (savedCompanyData) {
+      const companyData = JSON.parse(savedCompanyData);
+      setCompanyName(companyData.companyName || "");
+      setCompanyRIF(companyData.companyRIF || "");
+    }
+  }, []);
+
+  // Manejar edición de presupuesto
+  useEffect(() => {
+    if (editingBudget) {
+      setIsEditing(true);
+      setClientName(editingBudget.clientName);
+      setClientAddress(editingBudget.clientAddress || "");
+      setClientRIF(editingBudget.clientRIF);
+      setBudgetNumber(editingBudget.budgetNumber);
+      setNotes(editingBudget.notes);
+      setIncludeIVA(editingBudget.includeIVA);
+    } else {
+      setIsEditing(false);
+    }
+  }, [editingBudget]);
 
   useEffect(() => {
     const getNextBudgetNumber = () => {
@@ -58,12 +86,15 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
       return String(lastNumber + 1).padStart(4, '0');
     };
     
-    if (!budgetNumber) {
+    if (!budgetNumber && !isEditing) {
       setBudgetNumber(getNextBudgetNumber());
     }
-  }, [budgetNumber]);
+  }, [budgetNumber, isEditing]);
 
   const saveBudget = () => {
+    // Guardar datos de empresa
+    const companyData = { companyName, companyRIF };
+    localStorage.setItem('viford-company-data', JSON.stringify(companyData));
     if (!clientName.trim()) {
       toast({
         title: "Error",
@@ -106,23 +137,64 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
 
     // Guardar en localStorage
     const existingBudgets = JSON.parse(localStorage.getItem('viford-budgets') || '[]');
-    const updatedBudgets = [budget, ...existingBudgets];
+    let updatedBudgets;
+    
+    if (isEditing && editingBudget) {
+      // Actualizar presupuesto existente
+      updatedBudgets = existingBudgets.map((b: Budget) => 
+        b.id === editingBudget.id ? budget : b
+      );
+    } else {
+      // Agregar nuevo presupuesto
+      updatedBudgets = [budget, ...existingBudgets];
+    }
+    
     localStorage.setItem('viford-budgets', JSON.stringify(updatedBudgets));
 
     toast({
-      title: "Presupuesto guardado",
-      description: `Presupuesto para ${clientName} guardado exitosamente`,
+      title: isEditing ? "Presupuesto actualizado" : "Presupuesto guardado",
+      description: `Presupuesto para ${clientName} ${isEditing ? 'actualizado' : 'guardado'} exitosamente`,
       variant: "default"
     });
 
     // Limpiar formulario y generar siguiente número
+    if (!isEditing) {
+      setClientName("");
+      setClientAddress("");
+      setClientRIF("");
+      setNotes("");
+      
+      const nextNumber = String(parseInt(budgetNumber) + 1).padStart(4, '0');
+      setBudgetNumber(nextNumber);
+    } else {
+      // Si estamos editando, limpiar el modo de edición
+      setIsEditing(false);
+      if (onBudgetSaved) {
+        onBudgetSaved();
+      }
+    }
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
     setClientName("");
     setClientAddress("");
     setClientRIF("");
     setNotes("");
+    setIncludeIVA(true);
     
-    const nextNumber = String(parseInt(budgetNumber) + 1).padStart(4, '0');
-    setBudgetNumber(nextNumber);
+    const getNextBudgetNumber = () => {
+      const existingBudgets = JSON.parse(localStorage.getItem('viford-budgets') || '[]');
+      const lastNumber = existingBudgets.length > 0 
+        ? Math.max(...existingBudgets.map((b: Budget) => parseInt(b.budgetNumber) || 0))
+        : 0;
+      return String(lastNumber + 1).padStart(4, '0');
+    };
+    setBudgetNumber(getNextBudgetNumber());
+    
+    if (onBudgetSaved) {
+      onBudgetSaved();
+    }
   };
 
   const shareBudget = async () => {
@@ -181,7 +253,7 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
         <CardHeader className="bg-gradient-to-r from-success to-success/90 text-success-foreground">
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Generar Presupuesto
+            {isEditing ? 'Editar Presupuesto' : 'Generar Presupuesto'}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -317,8 +389,13 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
               <div className="flex gap-2">
                 <Button onClick={saveBudget} className="flex-1">
                   <Save className="h-4 w-4 mr-2" />
-                  Guardar Presupuesto
+                  {isEditing ? 'Actualizar Presupuesto' : 'Guardar Presupuesto'}
                 </Button>
+                {isEditing && (
+                  <Button onClick={cancelEdit} variant="outline">
+                    Cancelar
+                  </Button>
+                )}
                 <Button onClick={shareBudget} variant="outline">
                   <Share2 className="h-4 w-4 mr-2" />
                   Compartir
