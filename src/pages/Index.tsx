@@ -3,9 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductForm, Product } from "@/components/ProductForm";
 import { ProductList } from "@/components/ProductList";
 import { TotalCalculator } from "@/components/TotalCalculator";
-import { MaterialCostCalculator } from "@/components/MaterialCostCalculator";
+import { MaterialCostCalculator } from "@/components/MaterialCostCalculatorIndependent";
 import { BudgetGenerator } from "@/components/BudgetGenerator";
-import { BudgetHistory } from "@/components/BudgetHistory";
+import { BudgetHistory } from "@/components/BudgetHistoryUpdated";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { CurrencyProvider } from "@/components/CurrencyProvider";
 

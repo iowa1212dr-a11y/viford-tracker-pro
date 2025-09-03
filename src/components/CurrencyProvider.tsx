@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type Currency = 'USD' | 'VES';
+export type Currency = 'USD' | 'Bs.';
 
 interface CurrencyContextType {
   currency: Currency;
@@ -51,19 +51,19 @@ export const CurrencyProvider = ({ children }: CurrencyProviderProps) => {
         currency: 'USD'
       }).format(amount);
     } else {
-      return new Intl.NumberFormat('es-VE', {
-        style: 'currency',
-        currency: 'VES'
-      }).format(amount);
+      return `Bs. ${new Intl.NumberFormat('es-VE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(amount)}`;
     }
   };
 
   const convertAmount = (amount: number, fromCurrency: Currency = 'USD') => {
     if (currency === fromCurrency) return amount;
     
-    if (fromCurrency === 'USD' && currency === 'VES') {
+    if (fromCurrency === 'USD' && currency === 'Bs.') {
       return amount * exchangeRate;
-    } else if (fromCurrency === 'VES' && currency === 'USD') {
+    } else if (fromCurrency === 'Bs.' && currency === 'USD') {
       return amount / exchangeRate;
     }
     

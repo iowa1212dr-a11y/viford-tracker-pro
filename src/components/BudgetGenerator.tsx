@@ -18,6 +18,7 @@ export interface Budget {
   id: string;
   budgetNumber: string;
   clientName: string;  
+  clientAddress: string;
   clientRIF: string;
   companyName: string;
   companyRIF: string;
@@ -28,11 +29,12 @@ export interface Budget {
   subtotal: number;
   iva: number;
   total: number;
-  currency: 'USD' | 'VES';
+  currency: 'USD' | 'Bs.';
 }
 
 export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
   const [clientName, setClientName] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
   const [clientRIF, setClientRIF] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [companyRIF, setCompanyRIF] = useState("");
@@ -84,6 +86,7 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       budgetNumber: budgetNumber,
       clientName,
+      clientAddress,
       clientRIF,
       companyName,
       companyRIF,
@@ -114,6 +117,7 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
 
     // Limpiar formulario y generar siguiente número
     setClientName("");
+    setClientAddress("");
     setClientRIF("");
     setNotes("");
     
@@ -135,14 +139,15 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
       `${companyRIF ? `RIF: ${companyRIF}\n` : ''}` +
       `PRESUPUESTO N°: ${budgetNumber}\n\n` +
       `Cliente: ${clientName}\n` +
+      `${clientAddress ? `Dirección: ${clientAddress}\n` : ''}` +
       `${clientRIF ? `RIF: ${clientRIF}\n` : ''}` +
       `Fecha: ${new Date().toLocaleDateString('es-MX')}\n\n` +
       `MATERIALES:\n` +
       `${products.map((p, index) => 
         `${index + 1}. ${p.name.toUpperCase()}\n` +
         `   Medida: ${p.width} x ${p.height}m\n` +
-        `   Precio: ${formatAmount(convertAmount(p.price))} ${p.unit === 'pieza' ? 'por pieza' : 'por m²'}\n` +
-        `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.height).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'm²'}\n` +
+         `   Precio: ${formatAmount(convertAmount(p.price))} ${p.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}\n` +
+         `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.height).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'ml'}\n` +
         `   Subtotal: ${formatAmount(convertAmount(p.total))}\n`
       ).join('\n')}\n` +
       `SUBTOTAL: ${formatAmount(subtotal)}\n` +
@@ -229,6 +234,20 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
                       placeholder="Nombre completo o empresa"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="clientAddress" className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Dirección del Cliente
+                    </Label>
+                    <Input
+                      id="clientAddress"
+                      value={clientAddress}
+                      onChange={(e) => setClientAddress(e.target.value)}
+                      placeholder="Dirección completa"
                       className="mt-1"
                     />
                   </div>
@@ -332,6 +351,12 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
                     <span className="font-medium">Fecha:</span>
                     <p>{new Date().toLocaleDateString('es-MX')}</p>
                   </div>
+                  {clientAddress && (
+                    <div className="col-span-2">
+                      <span className="font-medium">Dirección:</span>
+                      <p>{clientAddress}</p>
+                    </div>
+                  )}
                   {clientRIF && (
                     <div className="col-span-2">
                       <span className="font-medium">RIF Cliente:</span>
@@ -350,10 +375,10 @@ export const BudgetGenerator = ({ products }: BudgetGeneratorProps) => {
                             <div className="flex-1">
                               <p className="font-medium">{index + 1}. {product.name.toUpperCase()}</p>
                               <p>Medida: {product.width} x {product.height}m</p>
-                              <p>Precio: {formatAmount(convertAmount(product.price))} {product.unit === 'pieza' ? 'por pieza' : 'por m²'}</p>
+                              <p>Precio: {formatAmount(convertAmount(product.price))} {product.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}</p>
                             </div>
                             <div className="text-right">
-                              <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.height).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'm²'}</p>
+                              <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.height).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'ml'}</p>
                               <p className="font-bold">{formatAmount(convertAmount(product.total))}</p>
                             </div>
                           </div>

@@ -38,11 +38,11 @@ export const CurrencySelector = () => {
                 USD ($)
               </Button>
               <Button
-                variant={currency === 'VES' ? 'default' : 'outline'}
-                onClick={() => setCurrency('VES')}
+                variant={currency === 'Bs.' ? 'default' : 'outline'}
+                onClick={() => setCurrency('Bs.')}
                 className="flex-1"
               >
-                VES (Bs.)
+                Bs.
               </Button>
             </div>
           </div>

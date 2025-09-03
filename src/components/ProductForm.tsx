@@ -157,7 +157,7 @@ export const ProductForm = ({ onAddProduct }: ProductFormProps) => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="metro">Por Metro²</SelectItem>
+                  <SelectItem value="metro">Por Metro Lineal</SelectItem>
                   <SelectItem value="pieza">Por Pieza</SelectItem>
                 </SelectContent>
               </Select>
