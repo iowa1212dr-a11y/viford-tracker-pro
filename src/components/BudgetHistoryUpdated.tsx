@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { History, Search, Trash2, Share2, Eye, Calendar, User, Building, Edit, Download, Camera } from "lucide-react";
+import { History, Search, Trash2, Share2, Eye, Calendar, User, Building, Edit, Download, Camera, Truck } from "lucide-react";
 import { Budget } from "./BudgetGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { usePDFExport } from "@/hooks/usePDFExport";
+import { DeliveryNote } from "./DeliveryNote";
 
 interface BudgetHistoryProps {
   onEditBudget?: (budget: Budget) => void;
@@ -16,6 +17,7 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [showDeliveryNote, setShowDeliveryNote] = useState(false);
   
   const { toast } = useToast();
   const { exportToPDF, captureAsImage } = usePDFExport();
@@ -264,21 +266,30 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                            <Download className="h-4 w-4 mr-2" />
                            PDF
                          </Button>
-                         <Button
-                           size="sm"
-                           onClick={() => captureAsImage('budget-history-preview', `Presupuesto-${selectedBudget.budgetNumber}-${selectedBudget.clientName}`)}
-                           variant="outline"
-                         >
-                           <Camera className="h-4 w-4 mr-2" />
-                           Imagen
-                         </Button>
-                         <Button
-                           size="sm"
-                           onClick={() => shareBudget(selectedBudget)}
-                         >
-                           <Share2 className="h-4 w-4 mr-2" />
-                           Compartir
-                         </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => captureAsImage('budget-history-preview', `Presupuesto-${selectedBudget.budgetNumber}-${selectedBudget.clientName}`)}
+                            variant="outline"
+                          >
+                            <Camera className="h-4 w-4 mr-2" />
+                            Imagen
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => setShowDeliveryNote(true)}
+                            variant="outline"
+                            className="bg-secondary hover:bg-secondary/80"
+                          >
+                            <Truck className="h-4 w-4 mr-2" />
+                            Nota de Entrega
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => shareBudget(selectedBudget)}
+                          >
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Compartir
+                          </Button>
                        </div>
                      </CardTitle>
                   </CardHeader>
@@ -382,6 +393,15 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Modal de Nota de Entrega */}
+      {selectedBudget && (
+        <DeliveryNote
+          budget={selectedBudget}
+          open={showDeliveryNote}
+          onOpenChange={setShowDeliveryNote}
+        />
+      )}
     </div>
   );
 };
