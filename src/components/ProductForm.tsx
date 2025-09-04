@@ -39,24 +39,36 @@ export const ProductForm = ({ onAddProduct }: ProductFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.width || !formData.height || !formData.price || !formData.quantity) {
-      toast({
-        title: "Error",
-        description: "Por favor completa todos los campos",
-        variant: "destructive"
-      });
-      return;
+    // Validación diferente según el tipo de unidad
+    if (formData.unit === 'metro') {
+      if (!formData.height || !formData.price || !formData.quantity) {
+        toast({
+          title: "Error",
+          description: "Por favor completa todos los campos requeridos",
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      if (!formData.width || !formData.height || !formData.price || !formData.quantity) {
+        toast({
+          title: "Error",
+          description: "Por favor completa todos los campos",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
-    const width = parseFloat(formData.width);
+    const width = formData.unit === 'metro' ? 0 : parseFloat(formData.width);
     const height = parseFloat(formData.height);
     const price = parseFloat(formData.price);
     const quantity = parseInt(formData.quantity);
     
     let total: number;
     if (formData.unit === 'metro') {
-      // Para metro lineal, usar solo el ancho
-      total = width * price * quantity;
+      // Para metro lineal, usar solo precio x cantidad
+      total = price * quantity;
     } else {
       total = price * quantity;
     }
@@ -77,7 +89,7 @@ export const ProductForm = ({ onAddProduct }: ProductFormProps) => {
     // Reset form except name and unit
     setFormData({
       ...formData,
-      width: "",
+      width: formData.unit === 'metro' ? "" : "",
       height: "",
       price: "",
       quantity: "1"
@@ -121,7 +133,14 @@ export const ProductForm = ({ onAddProduct }: ProductFormProps) => {
                 onChange={(e) => setFormData({ ...formData, width: e.target.value })}
                 className="mt-1"
                 placeholder="2.00"
+                disabled={formData.unit === 'metro'}
+                required={formData.unit === 'pieza'}
               />
+              {formData.unit === 'metro' && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Campo deshabilitado en modo metro lineal
+                </p>
+              )}
             </div>
             <div>
               <Label htmlFor="height">Alto (m)</Label>

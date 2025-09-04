@@ -219,9 +219,9 @@ export const BudgetGenerator = ({ products, editingBudget, onBudgetSaved }: Budg
       `MATERIALES:\n` +
       `${products.map((p, index) => 
         `${index + 1}. ${p.name.toUpperCase()}\n` +
-        `   Medida: ${p.width} x ${p.height}m\n` +
+         `   Medida: ${p.unit === 'metro' ? `${p.quantity} x ${p.height}m` : `${p.width} x ${p.height}m`}\n` +
          `   Precio: ${formatAmount(convertAmount(p.price))} ${p.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}\n` +
-         `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.quantity).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'ml'}\n` +
+         `   Cantidad: ${p.unit === 'pieza' ? p.quantity : p.quantity} ${p.unit === 'pieza' ? 'piezas' : 'ml'}\n` +
         `   Subtotal: ${formatAmount(convertAmount(p.total))}\n`
       ).join('\n')}\n` +
       `SUBTOTAL: ${formatAmount(subtotal)}\n` +
@@ -473,15 +473,15 @@ export const BudgetGenerator = ({ products, editingBudget, onBudgetSaved }: Budg
                       {products.map((product, index) => (
                         <div key={index} className="text-xs border-b pb-2">
                           <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <p className="font-medium">{index + 1}. {product.name.toUpperCase()}</p>
-                              <p>Medida: {product.width} x {product.height}m</p>
-                              <p>Precio: {formatAmount(convertAmount(product.price))} {product.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}</p>
-                            </div>
-                             <div className="text-right">
-                               <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.quantity).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'ml'}</p>
-                               <p className="font-bold">{formatAmount(convertAmount(product.total))}</p>
-                             </div>
+                                <div className="flex-1">
+                                  <p className="font-medium">{index + 1}. {product.name.toUpperCase()}</p>
+                                  <p>Medida: {product.unit === 'metro' ? `${product.quantity} x ${product.height}m` : `${product.width} x ${product.height}m`}</p>
+                                  <p>Precio: {formatAmount(convertAmount(product.price))} {product.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p>Cant: {product.unit === 'pieza' ? product.quantity : product.quantity} {product.unit === 'pieza' ? 'pzs' : 'ml'}</p>
+                                  <p className="font-bold">{formatAmount(convertAmount(product.total))}</p>
+                                </div>
                           </div>
                         </div>
                       ))}

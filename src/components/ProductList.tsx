@@ -50,20 +50,24 @@ export const ProductList = ({ products, onRemoveProduct }: ProductListProps) => 
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-semibold text-card-foreground">{product.name}</h3>
                     <Badge variant={product.unit === 'metro' ? 'default' : 'secondary'}>
-                      {product.unit === 'metro' ? 'Metro²' : 'Pieza'}
+                      {product.unit === 'metro' ? 'Metro Lineal' : 'Pieza'}
                     </Badge>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
                     <div>
-                      <span className="font-medium">Medidas:</span> {product.width}m × {product.height}m
+                      <span className="font-medium">Medidas:</span> 
+                      {product.unit === 'metro' 
+                        ? `${product.quantity} × ${product.height}m`
+                        : `${product.width}m × ${product.height}m`
+                      }
                     </div>
                     <div>
                       <span className="font-medium">Cantidad:</span> {product.quantity}
                     </div>
                     <div>
                       <span className="font-medium">Precio:</span> {formatCurrency(product.price)}
-                      {product.unit === 'metro' && '/m²'}
+                      {product.unit === 'metro' ? '/ml' : (product.unit === 'pieza' ? '/pza' : '')}
                     </div>
                     <div>
                       <span className="font-medium">Total:</span> 
@@ -75,7 +79,7 @@ export const ProductList = ({ products, onRemoveProduct }: ProductListProps) => 
 
                   {product.unit === 'metro' && (
                     <div className="mt-2 text-xs text-muted-foreground">
-                      Área: {(product.width * product.height).toFixed(2)} m²
+                      Total metros lineales: {product.quantity} ml
                     </div>
                   )}
                 </div>

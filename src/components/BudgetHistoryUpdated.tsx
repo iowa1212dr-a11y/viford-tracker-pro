@@ -78,9 +78,9 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
       `MATERIALES:\n` +
       `${budget.products.map((p, index) => 
         `${index + 1}. ${p.name.toUpperCase()}\n` +
-        `   Medida: ${p.width} x ${p.height}m\n` +
-        `   Precio: ${formatCurrency(p.price, budget.currency)} ${p.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}\n` +
-        `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.quantity).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'ml'}\n` +
+         `   Medida: ${p.unit === 'metro' ? `${p.quantity} x ${p.height}m` : `${p.width} x ${p.height}m`}\n` +
+         `   Precio: ${formatCurrency(p.price, budget.currency)} ${p.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}\n` +
+         `   Cantidad: ${p.unit === 'pieza' ? p.quantity : p.quantity} ${p.unit === 'pieza' ? 'piezas' : 'ml'}\n` +
         `   Subtotal: ${formatCurrency(p.total, budget.currency)}\n`
       ).join('\n')}\n` +
       `SUBTOTAL: ${formatCurrency(budget.subtotal, budget.currency)}\n` +
@@ -327,13 +327,13 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                           {selectedBudget.products.map((product, index) => (
                             <div key={index} className="text-xs border-b pb-2">
                               <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                  <p className="font-medium">{index + 1}. {product.name.toUpperCase()}</p>
-                                  <p>Medida: {product.width} x {product.height}m</p>
-                                  <p>Precio: {formatCurrency(product.price, selectedBudget.currency)} {product.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}</p>
-                                </div>
+                                 <div className="flex-1">
+                                   <p className="font-medium">{index + 1}. {product.name.toUpperCase()}</p>
+                                   <p>Medida: {product.unit === 'metro' ? `${product.quantity} x ${product.height}m` : `${product.width} x ${product.height}m`}</p>
+                                   <p>Precio: {formatCurrency(product.price, selectedBudget.currency)} {product.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}</p>
+                                 </div>
                                  <div className="text-right">
-                                   <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.quantity).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'ml'}</p>
+                                   <p>Cant: {product.unit === 'pieza' ? product.quantity : product.quantity} {product.unit === 'pieza' ? 'pzs' : 'ml'}</p>
                                    <p className="font-bold">{formatCurrency(product.total, selectedBudget.currency)}</p>
                                  </div>
                               </div>
