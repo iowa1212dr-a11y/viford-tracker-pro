@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { History, Search, Trash2, Share2, Eye, Calendar, User, Building, Edit } from "lucide-react";
+import { History, Search, Trash2, Share2, Eye, Calendar, User, Building, Edit, Download, Camera } from "lucide-react";
 import { Budget } from "./BudgetGenerator";
 import { useToast } from "@/hooks/use-toast";
+import { usePDFExport } from "@/hooks/usePDFExport";
 
 interface BudgetHistoryProps {
   onEditBudget?: (budget: Budget) => void;
@@ -17,6 +18,7 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   
   const { toast } = useToast();
+  const { exportToPDF, captureAsImage } = usePDFExport();
 
   useEffect(() => {
     loadBudgets();
@@ -78,7 +80,7 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
         `${index + 1}. ${p.name.toUpperCase()}\n` +
         `   Medida: ${p.width} x ${p.height}m\n` +
         `   Precio: ${formatCurrency(p.price, budget.currency)} ${p.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}\n` +
-        `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.height).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'ml'}\n` +
+        `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.quantity).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'ml'}\n` +
         `   Subtotal: ${formatCurrency(p.total, budget.currency)}\n`
       ).join('\n')}\n` +
       `SUBTOTAL: ${formatCurrency(budget.subtotal, budget.currency)}\n` +
@@ -251,20 +253,38 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
               {selectedBudget ? (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>Vista del Presupuesto</span>
-                      <Button
-                        size="sm"
-                        onClick={() => shareBudget(selectedBudget)}
-                      >
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Compartir
-                      </Button>
-                    </CardTitle>
+                     <CardTitle className="flex items-center justify-between">
+                       <span>Vista del Presupuesto</span>
+                       <div className="flex gap-2">
+                         <Button
+                           size="sm"
+                           onClick={() => exportToPDF('budget-history-preview', `Presupuesto-${selectedBudget.budgetNumber}-${selectedBudget.clientName}`)}
+                           variant="outline"
+                         >
+                           <Download className="h-4 w-4 mr-2" />
+                           PDF
+                         </Button>
+                         <Button
+                           size="sm"
+                           onClick={() => captureAsImage('budget-history-preview', `Presupuesto-${selectedBudget.budgetNumber}-${selectedBudget.clientName}`)}
+                           variant="outline"
+                         >
+                           <Camera className="h-4 w-4 mr-2" />
+                           Imagen
+                         </Button>
+                         <Button
+                           size="sm"
+                           onClick={() => shareBudget(selectedBudget)}
+                         >
+                           <Share2 className="h-4 w-4 mr-2" />
+                           Compartir
+                         </Button>
+                       </div>
+                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    {/* Vista Previa del Presupuesto - Igual que en BudgetGenerator */}
-                    <div className="p-4 bg-muted rounded-lg border-2 border-dashed">
+                   <CardContent>
+                     {/* Vista Previa del Presupuesto - Igual que en BudgetGenerator */}
+                     <div id="budget-history-preview" className="p-4 bg-muted rounded-lg border-2 border-dashed">
                       <div className="text-center border-b pb-3 mb-4">
                         <h2 className="font-bold text-lg text-primary">
                           {selectedBudget.companyName || "EMPRESA VIFORD PRO C.A."}
@@ -312,10 +332,10 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                                   <p>Medida: {product.width} x {product.height}m</p>
                                   <p>Precio: {formatCurrency(product.price, selectedBudget.currency)} {product.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}</p>
                                 </div>
-                                <div className="text-right">
-                                  <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.height).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'ml'}</p>
-                                  <p className="font-bold">{formatCurrency(product.total, selectedBudget.currency)}</p>
-                                </div>
+                                 <div className="text-right">
+                                   <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.quantity).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'ml'}</p>
+                                   <p className="font-bold">{formatCurrency(product.total, selectedBudget.currency)}</p>
+                                 </div>
                               </div>
                             </div>
                           ))}

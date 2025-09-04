@@ -5,10 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Save, Share2, User, Building, Calendar, Hash } from "lucide-react";
+import { FileText, Save, Share2, User, Building, Calendar, Hash, Download, Camera } from "lucide-react";
 import { Product } from "./ProductForm";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrency } from "./CurrencyProvider";
+import { usePDFExport } from "@/hooks/usePDFExport";
 
 interface BudgetGeneratorProps {
   products: Product[];
@@ -47,6 +48,7 @@ export const BudgetGenerator = ({ products, editingBudget, onBudgetSaved }: Budg
   
   const { formatAmount, convertAmount, currency } = useCurrency();
   const { toast } = useToast();
+  const { exportToPDF, captureAsImage } = usePDFExport();
 
   const subtotal = products.reduce((sum, product) => sum + convertAmount(product.total), 0);
   const iva = includeIVA ? subtotal * 0.16 : 0;
@@ -219,7 +221,7 @@ export const BudgetGenerator = ({ products, editingBudget, onBudgetSaved }: Budg
         `${index + 1}. ${p.name.toUpperCase()}\n` +
         `   Medida: ${p.width} x ${p.height}m\n` +
          `   Precio: ${formatAmount(convertAmount(p.price))} ${p.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}\n` +
-         `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.height).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'ml'}\n` +
+         `   Cantidad: ${p.unit === 'pieza' ? p.quantity : (p.width * p.quantity).toFixed(2)} ${p.unit === 'pieza' ? 'piezas' : 'ml'}\n` +
         `   Subtotal: ${formatAmount(convertAmount(p.total))}\n`
       ).join('\n')}\n` +
       `SUBTOTAL: ${formatAmount(subtotal)}\n` +
@@ -386,26 +388,48 @@ export const BudgetGenerator = ({ products, editingBudget, onBudgetSaved }: Budg
                 />
               </div>
 
-              <div className="flex gap-2">
-                <Button onClick={saveBudget} className="flex-1">
-                  <Save className="h-4 w-4 mr-2" />
-                  {isEditing ? 'Actualizar Presupuesto' : 'Guardar Presupuesto'}
-                </Button>
-                {isEditing && (
-                  <Button onClick={cancelEdit} variant="outline">
-                    Cancelar
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Button onClick={saveBudget} className="flex-1">
+                    <Save className="h-4 w-4 mr-2" />
+                    {isEditing ? 'Actualizar Presupuesto' : 'Guardar Presupuesto'}
                   </Button>
-                )}
-                <Button onClick={shareBudget} variant="outline">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Compartir
-                </Button>
+                  {isEditing && (
+                    <Button onClick={cancelEdit} variant="outline">
+                      Cancelar
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={shareBudget} variant="outline" className="flex-1">
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Compartir
+                  </Button>
+                  <Button 
+                    onClick={() => exportToPDF('budget-preview', `Presupuesto-${budgetNumber}-${clientName || 'Cliente'}`)} 
+                    variant="outline"
+                    className="flex-1"
+                    disabled={!clientName.trim()}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    PDF
+                  </Button>
+                  <Button 
+                    onClick={() => captureAsImage('budget-preview', `Presupuesto-${budgetNumber}-${clientName || 'Cliente'}`)} 
+                    variant="outline"
+                    className="flex-1"
+                    disabled={!clientName.trim()}
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Imagen
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* Vista Previa del Presupuesto */}
             <div className="space-y-4">
-              <div className="p-4 bg-muted rounded-lg border-2 border-dashed">
+              <div id="budget-preview" className="p-4 bg-muted rounded-lg border-2 border-dashed">
                 <div className="text-center border-b pb-3 mb-4">
                   <h2 className="font-bold text-lg text-primary">
                     {companyName || "EMPRESA VIFORD PRO C.A."}
@@ -454,10 +478,10 @@ export const BudgetGenerator = ({ products, editingBudget, onBudgetSaved }: Budg
                               <p>Medida: {product.width} x {product.height}m</p>
                               <p>Precio: {formatAmount(convertAmount(product.price))} {product.unit === 'pieza' ? 'por pieza' : 'por metro lineal'}</p>
                             </div>
-                            <div className="text-right">
-                              <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.height).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'ml'}</p>
-                              <p className="font-bold">{formatAmount(convertAmount(product.total))}</p>
-                            </div>
+                             <div className="text-right">
+                               <p>Cant: {product.unit === 'pieza' ? product.quantity : (product.width * product.quantity).toFixed(2)} {product.unit === 'pieza' ? 'pzs' : 'ml'}</p>
+                               <p className="font-bold">{formatAmount(convertAmount(product.total))}</p>
+                             </div>
                           </div>
                         </div>
                       ))}

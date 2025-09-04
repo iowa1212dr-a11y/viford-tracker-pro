@@ -55,8 +55,8 @@ export const ProductForm = ({ onAddProduct }: ProductFormProps) => {
     
     let total: number;
     if (formData.unit === 'metro') {
-      const area = width * height;
-      total = area * price * quantity;
+      // Para metro lineal, usar solo el ancho
+      total = width * price * quantity;
     } else {
       total = price * quantity;
     }
