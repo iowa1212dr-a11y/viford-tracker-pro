@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ProductForm, Product } from "@/components/ProductForm";
 import { ProductList } from "@/components/ProductList";
 import { TotalCalculator } from "@/components/TotalCalculator";
@@ -8,11 +8,12 @@ import { BudgetGenerator } from "@/components/BudgetGenerator";
 import { BudgetHistory } from "@/components/BudgetHistoryUpdated";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { CurrencyProvider } from "@/components/CurrencyProvider";
+import { AppSidebar } from "@/components/AppSidebar";
 
 const Index = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingBudget, setEditingBudget] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("productos");
+  const [activeSection, setActiveSection] = useState("productos");
 
   const addProduct = (product: Product) => {
     setProducts(prev => [...prev, product]);
@@ -24,68 +25,81 @@ const Index = () => {
 
   const handleEditBudget = (budget: any) => {
     setEditingBudget(budget);
-    setActiveTab("presupuesto");
+    setActiveSection("presupuesto");
   };
 
   const handleBudgetSaved = () => {
     setEditingBudget(null);
-    setActiveTab("historial");
+    setActiveSection("historial");
+  };
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case "productos":
+        return (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ProductForm onAddProduct={addProduct} />
+            <ProductList products={products} onRemoveProduct={removeProduct} />
+          </div>
+        );
+      case "totales":
+        return (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <TotalCalculator products={products} />
+            <CurrencySelector />
+          </div>
+        );
+      case "costos":
+        return <MaterialCostCalculator products={products} />;
+      case "presupuesto":
+        return (
+          <BudgetGenerator 
+            products={products} 
+            editingBudget={editingBudget}
+            onBudgetSaved={handleBudgetSaved}
+          />
+        );
+      case "historial":
+        return <BudgetHistory onEditBudget={handleEditBudget} />;
+      default:
+        return null;
+    }
   };
 
   return (
     <CurrencyProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
-              Calculadora Malla Viford Pro
-            </h1>
-            <p className="text-muted-foreground">
-              Administra productos, calcula costos y genera presupuestos profesionales
-            </p>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <AppSidebar 
+            activeSection={activeSection} 
+            onSectionChange={setActiveSection} 
+          />
+          
+          <div className="flex-1 flex flex-col">
+            {/* Header con trigger del menú */}
+            <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="flex items-center h-full px-4 gap-4">
+                <SidebarTrigger className="h-8 w-8" />
+                <div className="flex-1">
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    Calculadora Malla Viford Pro
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    Administra productos, calcula costos y genera presupuestos profesionales
+                  </p>
+                </div>
+              </div>
+            </header>
+
+            {/* Contenido principal */}
+            <main className="flex-1 p-6 bg-gradient-to-br from-background to-muted/20">
+              <div className="space-y-6">
+                {renderContent()}
+              </div>
+            </main>
           </div>
-
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="productos">Productos</TabsTrigger>
-              <TabsTrigger value="totales">Totales</TabsTrigger>
-              <TabsTrigger value="costos">Costos</TabsTrigger>
-              <TabsTrigger value="presupuesto">Presupuesto</TabsTrigger>
-              <TabsTrigger value="historial">Historial</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="productos" className="space-y-6">
-              <div className="grid gap-6 lg:grid-cols-2">
-                <ProductForm onAddProduct={addProduct} />
-                <ProductList products={products} onRemoveProduct={removeProduct} />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="totales" className="space-y-6">
-              <div className="grid gap-6 lg:grid-cols-2">
-                <TotalCalculator products={products} />
-                <CurrencySelector />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="costos" className="space-y-6">
-              <MaterialCostCalculator products={products} />
-            </TabsContent>
-
-            <TabsContent value="presupuesto" className="space-y-6">
-              <BudgetGenerator 
-                products={products} 
-                editingBudget={editingBudget}
-                onBudgetSaved={handleBudgetSaved}
-              />
-            </TabsContent>
-
-            <TabsContent value="historial" className="space-y-6">
-              <BudgetHistory onEditBudget={handleEditBudget} />
-            </TabsContent>
-          </Tabs>
         </div>
-      </div>
+      </SidebarProvider>
     </CurrencyProvider>
   );
 };

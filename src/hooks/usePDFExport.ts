@@ -2,6 +2,36 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useToast } from './use-toast';
 
+// Detectar si es dispositivo móvil
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+         (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
+};
+
+// Función para descargar en móviles
+const downloadForMobile = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  
+  // Intentar usar Web Share API si está disponible
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], filename)] })) {
+    const file = new File([blob], filename, { type: blob.type });
+    navigator.share({
+      files: [file],
+      title: 'Documento generado',
+      text: `Compartir ${filename}`
+    }).catch(() => {
+      // Si falla el share, abrir en nueva pestaña
+      window.open(url, '_blank');
+    });
+  } else {
+    // Abrir en nueva pestaña para descarga manual
+    window.open(url, '_blank');
+  }
+  
+  // Limpiar el URL después de un tiempo
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
 export const usePDFExport = () => {
   const { toast } = useToast();
 
@@ -49,12 +79,17 @@ export const usePDFExport = () => {
         heightLeft -= pageHeight;
       }
 
-      // Descargar el PDF
-      pdf.save(`${filename}.pdf`);
+      // Descargar según el dispositivo
+      if (isMobile()) {
+        const pdfBlob = pdf.output('blob');
+        downloadForMobile(pdfBlob, `${filename}.pdf`);
+      } else {
+        pdf.save(`${filename}.pdf`);
+      }
 
       toast({
         title: "PDF generado",
-        description: "El archivo PDF se ha descargado exitosamente",
+        description: isMobile() ? "El archivo PDF se abrirá en una nueva pestaña" : "El archivo PDF se ha descargado exitosamente",
         variant: "default"
       });
     } catch (error) {
@@ -84,15 +119,24 @@ export const usePDFExport = () => {
         height: element.scrollHeight
       });
 
-      // Descargar como imagen de alta calidad
-      const link = document.createElement('a');
-      link.download = `${filename}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0);
-      link.click();
+      // Descargar según el dispositivo
+      if (isMobile()) {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            downloadForMobile(blob, `${filename}.png`);
+          }
+        }, 'image/png', 1.0);
+      } else {
+        // Descarga tradicional para desktop
+        const link = document.createElement('a');
+        link.download = `${filename}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+      }
 
       toast({
         title: "Imagen generada",
-        description: "La imagen se ha descargado exitosamente",
+        description: isMobile() ? "La imagen se abrirá en una nueva pestaña" : "La imagen se ha descargado exitosamente",
         variant: "default"
       });
     } catch (error) {
