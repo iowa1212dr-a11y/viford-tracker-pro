@@ -9,6 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 interface AppSidebarProps {
@@ -50,25 +51,31 @@ const menuItems = [
 ];
 
 export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) {
+  const { state } = useSidebar();
+  
   return (
-    <Sidebar className="border-r border-sidebar-border">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <Calculator className="w-4 h-4 text-primary-foreground" />
           </div>
-          <div>
-            <h2 className="font-semibold text-sidebar-foreground">Viford Pro</h2>
-            <p className="text-xs text-sidebar-foreground/60">Calculadora de Mallas</p>
-          </div>
+          {state !== "collapsed" && (
+            <div>
+              <h2 className="font-semibold text-sidebar-foreground">Viford Pro</h2>
+              <p className="text-xs text-sidebar-foreground/60">Calculadora de Mallas</p>
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/80 font-medium">
-            Navegación
-          </SidebarGroupLabel>
+          {state !== "collapsed" && (
+            <SidebarGroupLabel className="text-sidebar-foreground/80 font-medium">
+              Navegación
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -77,12 +84,15 @@ export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) 
                     onClick={() => onSectionChange(item.id)}
                     isActive={activeSection === item.id}
                     className="w-full justify-start gap-3 p-3 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                    tooltip={state === "collapsed" ? item.title : undefined}
                   >
                     <item.icon className="w-4 h-4" />
-                    <div className="flex-1 text-left">
-                      <div className="font-medium">{item.title}</div>
-                      <div className="text-xs opacity-60">{item.description}</div>
-                    </div>
+                    {state !== "collapsed" && (
+                      <div className="flex-1 text-left">
+                        <div className="font-medium">{item.title}</div>
+                        <div className="text-xs opacity-60">{item.description}</div>
+                      </div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

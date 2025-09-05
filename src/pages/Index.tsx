@@ -68,7 +68,7 @@ const Index = () => {
 
   return (
     <CurrencyProvider>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={true}>
         <div className="min-h-screen flex w-full">
           <AppSidebar 
             activeSection={activeSection} 
@@ -79,7 +79,7 @@ const Index = () => {
             {/* Header con trigger del menú */}
             <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="flex items-center h-full px-4 gap-4">
-                <SidebarTrigger className="h-8 w-8" />
+                <SidebarTrigger className="h-8 w-8 p-1 hover:bg-muted rounded-md transition-colors" />
                 <div className="flex-1">
                   <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     Calculadora Malla Viford Pro
