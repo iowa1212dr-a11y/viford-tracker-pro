@@ -40,18 +40,19 @@ export const DeliveryNote = ({ budget, open, onOpenChange }: DeliveryNoteProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-y-auto p-2 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Truck className="h-5 w-5" />
-              Nota de Entrega - {budget.clientName}
+              <span className="text-sm sm:text-base">Nota de Entrega - {budget.clientName}</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               <Button
                 size="sm"
                 onClick={() => exportToPDF('delivery-note-content', `Nota-Entrega-${budget.budgetNumber}-${budget.clientName}`)}
                 variant="outline"
+                className="flex-1 sm:flex-none"
               >
                 <Download className="h-4 w-4 mr-2" />
                 PDF
@@ -60,6 +61,7 @@ export const DeliveryNote = ({ budget, open, onOpenChange }: DeliveryNoteProps) 
                 size="sm"
                 onClick={() => captureAsImage('delivery-note-content', `Nota-Entrega-${budget.budgetNumber}-${budget.clientName}`)}
                 variant="outline"
+                className="flex-1 sm:flex-none"
               >
                 <Camera className="h-4 w-4 mr-2" />
                 Imagen
@@ -68,6 +70,7 @@ export const DeliveryNote = ({ budget, open, onOpenChange }: DeliveryNoteProps) 
                 size="sm"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                className="flex-1 sm:flex-none"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -81,7 +84,7 @@ export const DeliveryNote = ({ budget, open, onOpenChange }: DeliveryNoteProps) 
             <CardHeader>
               <CardTitle className="text-lg">Datos de Transporte</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="transportedBy">Transportado por</Label>
                 <Input
@@ -140,7 +143,7 @@ export const DeliveryNote = ({ budget, open, onOpenChange }: DeliveryNoteProps) 
                 </div>
                 
                 {/* Datos del Cliente */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-6">
                   <div>
                     <span className="font-semibold">Cliente:</span>
                     <p className="mt-1">{budget.clientName}</p>
@@ -192,7 +195,7 @@ export const DeliveryNote = ({ budget, open, onOpenChange }: DeliveryNoteProps) 
                 {/* Datos de Transporte */}
                 <div className="border rounded-lg p-4 bg-muted/30">
                   <h4 className="font-bold mb-4 text-center">DATOS DE TRANSPORTE</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="font-semibold">Transportado por:</span>
                       <p className="mt-1 border-b border-dotted pb-1">
@@ -221,7 +224,7 @@ export const DeliveryNote = ({ budget, open, onOpenChange }: DeliveryNoteProps) 
                 </div>
 
                 {/* Firmas */}
-                <div className="grid grid-cols-2 gap-8 mt-8 pt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-8 pt-6">
                   <div className="text-center">
                     <div className="border-t border-foreground mt-12 pt-2">
                       <p className="text-sm font-medium">Firma del Cliente</p>

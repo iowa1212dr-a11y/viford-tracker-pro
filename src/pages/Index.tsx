@@ -77,14 +77,14 @@ const Index = () => {
           
           <div className="flex-1 flex flex-col">
             {/* Header con trigger del menú */}
-            <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="flex items-center h-full px-4 gap-4">
+            <header className="h-14 sm:h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="flex items-center h-full px-3 sm:px-4 gap-4">
                 <SidebarTrigger className="h-8 w-8 p-1 hover:bg-muted rounded-md transition-colors" />
-                <div className="flex-1">
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
                     Calculadora Malla Viford Pro
                   </h1>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                     Administra productos, calcula costos y genera presupuestos profesionales
                   </p>
                 </div>
@@ -92,7 +92,7 @@ const Index = () => {
             </header>
 
             {/* Contenido principal */}
-            <main className="flex-1 p-6 bg-gradient-to-br from-background to-muted/20">
+            <main className="flex-1 p-3 sm:p-6 bg-gradient-to-br from-background to-muted/20">
               <div className="space-y-6">
                 {renderContent()}
               </div>

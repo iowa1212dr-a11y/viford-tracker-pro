@@ -130,7 +130,7 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Lista de Presupuestos */}
             <div className="space-y-4">
               {filteredBudgets.length === 0 ? (
@@ -198,7 +198,7 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                           <div className="font-bold text-lg text-primary">
                             {formatCurrency(budget.total, budget.currency)}
                           </div>
-                          <div className="flex gap-1 mt-2">
+                          <div className="flex flex-wrap gap-1 mt-2 sm:flex-nowrap">
                             <Button
                               size="sm"
                               variant="outline"
@@ -206,8 +206,10 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                                 e.stopPropagation();
                                 setSelectedBudget(budget);
                               }}
+                              className="flex-1 min-w-[60px] sm:flex-none"
                             >
-                              <Eye className="h-3 w-3" />
+                              <Eye className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Ver</span>
                             </Button>
                             <Button
                               size="sm"
@@ -218,8 +220,10 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                                   onEditBudget(budget);
                                 }
                               }}
+                              className="flex-1 min-w-[60px] sm:flex-none"
                             >
-                              <Edit className="h-3 w-3" />
+                              <Edit className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Editar</span>
                             </Button>
                             <Button
                               size="sm"
@@ -228,8 +232,10 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                                 e.stopPropagation();
                                 shareBudget(budget);
                               }}
+                              className="flex-1 min-w-[60px] sm:flex-none"
                             >
-                              <Share2 className="h-3 w-3" />
+                              <Share2 className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Compartir</span>
                             </Button>
                             <Button
                               size="sm"
@@ -238,8 +244,10 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                                 e.stopPropagation();
                                 deleteBudget(budget.id);
                               }}
+                              className="flex-1 min-w-[60px] sm:flex-none"
                             >
-                              <Trash2 className="h-3 w-3" />
+                              <Trash2 className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Eliminar</span>
                             </Button>
                           </div>
                         </div>
@@ -255,13 +263,14 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
               {selectedBudget ? (
                 <Card>
                   <CardHeader>
-                     <CardTitle className="flex items-center justify-between">
+                     <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                        <span>Vista del Presupuesto</span>
-                       <div className="flex gap-2">
+                       <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                          <Button
                            size="sm"
                            onClick={() => exportToPDF('budget-history-preview', `Presupuesto-${selectedBudget.budgetNumber}-${selectedBudget.clientName}`)}
                            variant="outline"
+                           className="flex-1 sm:flex-none"
                          >
                            <Download className="h-4 w-4 mr-2" />
                            PDF
@@ -270,6 +279,7 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                             size="sm"
                             onClick={() => captureAsImage('budget-history-preview', `Presupuesto-${selectedBudget.budgetNumber}-${selectedBudget.clientName}`)}
                             variant="outline"
+                            className="flex-1 sm:flex-none"
                           >
                             <Camera className="h-4 w-4 mr-2" />
                             Imagen
@@ -278,14 +288,15 @@ export const BudgetHistory = ({ onEditBudget }: BudgetHistoryProps) => {
                             size="sm"
                             onClick={() => setShowDeliveryNote(true)}
                             variant="outline"
-                            className="bg-secondary hover:bg-secondary/80"
+                            className="bg-secondary hover:bg-secondary/80 flex-1 sm:flex-none"
                           >
                             <Truck className="h-4 w-4 mr-2" />
-                            Nota de Entrega
+                            <span className="hidden sm:inline">Nota de </span>Entrega
                           </Button>
                           <Button
                             size="sm"
                             onClick={() => shareBudget(selectedBudget)}
+                            className="flex-1 sm:flex-none"
                           >
                             <Share2 className="h-4 w-4 mr-2" />
                             Compartir
